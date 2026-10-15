@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>งานระบบ Music Arms</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: one page, summary tiles on top, then a filterable task list or the daily log. Ink-blue accent on a cool grey ground. */
+:root{
+  --font:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;
+  --bg:#EEF1F3; --surface:#FFFFFF; --ink:#1B2430; --muted:#5B6674; --line:#D8DEE3; --accent:#1F5F8B; --accent-ink:#FFFFFF; --field:#F7F9FA;
+  --a:#3F7A38; --b:#1F5F8B; --c:#A5661A; --d:#6A4FA8; --e:#1A7A74;
+  --done-bg:#E2F3DE; --done-fg:#27500A; --draft-bg:#FAEEDA; --draft-fg:#633806; --open-bg:#FCE4E4; --open-fg:#8A1F1F;
+  --check-bg:#FFE4CC; --check-fg:#7A3300; --talk-bg:#E8E6F6; --talk-fg:#3C3489; --pend-bg:#E8E6F6; --pend-fg:#3C3489; --note-bg:#E6E9EC; --note-fg:#3F4854;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171C; --surface:#1A2128; --ink:#E8ECEF; --muted:#9AA6B2; --line:#2B343D; --accent:#6BB0DE; --accent-ink:#0E1A24; --field:#141A20;
+  --a:#8CC580; --b:#6BB0DE; --c:#E0A867; --d:#B49DF0; --e:#5CC4BC;
+  --done-bg:#1F3A1A; --done-fg:#B5DC9C; --draft-bg:#43330F; --draft-fg:#F0CC8A; --open-bg:#4A1F1F; --open-fg:#F4B5B5;
+  --check-bg:#4A2C12; --check-fg:#F5C79A; --talk-bg:#2B2A4A; --talk-fg:#C5C1F0; --pend-bg:#2B2A4A; --pend-fg:#C5C1F0; --note-bg:#262D35; --note-fg:#B7C0CA; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171C; --surface:#1A2128; --ink:#E8ECEF; --muted:#9AA6B2; --line:#2B343D; --accent:#6BB0DE; --accent-ink:#0E1A24; --field:#141A20;
+  --a:#8CC580; --b:#6BB0DE; --c:#E0A867; --d:#B49DF0; --e:#5CC4BC;
+  --done-bg:#1F3A1A; --done-fg:#B5DC9C; --draft-bg:#43330F; --draft-fg:#F0CC8A; --open-bg:#4A1F1F; --open-fg:#F4B5B5;
+  --check-bg:#4A2C12; --check-fg:#F5C79A; --talk-bg:#2B2A4A; --talk-fg:#C5C1F0; --pend-bg:#2B2A4A; --pend-fg:#C5C1F0; --note-bg:#262D35; --note-fg:#B7C0CA; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:24px;line-height:1.25;margin:0;font-weight:600;text-wrap:balance}
+h2{font-size:15px;margin:0;font-weight:600}
+.top{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 14px;font-weight:500;font-size:14px}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--open-fg)}
+.btn:focus-visible,.chip:focus-visible,.row:focus-visible,.tile:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.tile{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tile[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tile .n{font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.tile .nm{font-size:13px;font-weight:500}
+.tile .ds{font-size:12px;color:var(--muted)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.sa{background:var(--a)}.sb{background:var(--b)}.sc{background:var(--c)}.sd{background:var(--d)}.se{background:var(--e)}
+.mini{display:flex;flex-wrap:wrap;gap:4px}
+.pill{font-size:12px;padding:1px 9px;border-radius:999px;font-weight:500;white-space:nowrap;display:inline-block}
+.st-done{background:var(--done-bg);color:var(--done-fg)}.st-draft{background:var(--draft-bg);color:var(--draft-fg)}.st-open{background:var(--open-bg);color:var(--open-fg)}
+.st-check{background:var(--check-bg);color:var(--check-fg)}.st-talk{background:var(--talk-bg);color:var(--talk-fg)}.st-pend{background:var(--pend-bg);color:var(--pend-fg)}.st-note{background:var(--note-bg);color:var(--note-fg)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.search{flex:1;min-width:160px;max-width:300px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-weight:500;color:var(--muted)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-width:0}
+.row{width:100%;text-align:left;background:none;border:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 14px}
+.code{font-size:12px;font-weight:600;border-radius:4px;padding:1px 7px;border:1px solid currentColor;font-variant-numeric:tabular-nums}
+.code.sa{color:var(--a);background:none}.code.sb{color:var(--b);background:none}.code.sc{color:var(--c);background:none}.code.sd{color:var(--d);background:none}.code.se{color:var(--e);background:none}
+.ttl{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s}
+.task.open .chev{transform:rotate(-135deg)}
+.more{border-top:1px solid var(--line);padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.more .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500;min-width:0}
+input,select,textarea{background:var(--field);border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:14px;width:100%;color:var(--ink)}
+textarea{min-height:84px;resize:vertical}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.log{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.log li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;font-size:13px}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums}
+.by{color:var(--muted)}
+.day{display:flex;flex-direction:column;gap:6px}
+.day h2{color:var(--muted);font-variant-numeric:tabular-nums}
+.entry{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px}
+.entry .t{font-size:13px;color:var(--muted);grid-column:2}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.panel .full{grid-column:1/-1}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:8px;padding:28px 18px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.note{font-size:13px;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:8px 16px;border-radius:6px;font-size:14px;z-index:5;max-width:90vw}
+@media (max-width:560px){.row{grid-template-columns:auto minmax(0,1fr) auto}.row .pill{grid-column:2;justify-self:start}.chev{grid-row:1;grid-column:3}}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+
+#gate{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+#gate[hidden]{display:none}
+#gate form{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;width:min(380px,100%);display:flex;flex-direction:column;gap:12px}
+#gate h1{font-size:20px}#gate p{margin:0;color:var(--muted);font-size:13px}
+#gate input{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field)}
+#gate button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer}
+</style>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+<div id="gate" hidden><form id="gate-form"><h1>งานระบบ Music Arms</h1><p>เข้าสู่ระบบด้วยอีเมล ระบบจะส่งลิงก์เข้าสู่ระบบให้ทางอีเมล ไม่ต้องใช้รหัสผ่าน</p><input id="gate-email" type="email" required placeholder="อีเมล" autocomplete="email"><button type="submit">ส่งลิงก์เข้าสู่ระบบ</button><p id="gate-msg" role="status"></p></form></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="shim.js"></script>
+<script>
+const SEC={A:"คลัง / รูทีน",B:"หน้าออเดอร์ออนไลน์",C:"ฝ่ายขาย / Sale OP",D:"E-Commerce (ยังไม่ได้ข้อสรุป)",E:"หน้าร้าน"};
+const SECSUB={A:"สิทธิ์ · Refill · รูทีน",B:"ทีมขนส่ง · เสมียนคลัง",C:"SalesOp · F211 · หน้าจองการส่ง",D:"คลัง E-Commerce ยุบแล้ว",E:"สาขา · หน้าร้าน"};
+const ST=[["เสร็จแล้ว","done"],["ส่งข้อความผู้พัฒนาแล้ว","draft"],["ยังไม่เรียบร้อย","open"],["ต้องตรวจสอบ","check"],["รอคุยต่อ","talk"],["รอสรุป","pend"],["บันทึกไว้","note"]];
+const STK=Object.fromEntries(ST);
+const state={sec:"all",st:"all",q:"",tab:"tasks",open:new Set(),adding:false};
+try{const s=JSON.parse(localStorage.getItem("ma-ops")||"{}");if(s.tab)state.tab=s.tab;if(s.sec)state.sec=s.sec;if(s.st)state.st=s.st}catch(e){}
+function persist(){try{localStorage.setItem("ma-ops",JSON.stringify({tab:state.tab,sec:state.sec,st:state.st}))}catch(e){}}
+let db=null,user=null,downloads=null,uid=null,canWrite=true,tasks=[],logs=[],loaded=false,dbMissing=false,pending=false;
+const names={};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const use=async n=>{try{return await window.claude?.use?.(n)}catch(e){return null}};
+function todayTH(){const d=new Date();return d.getDate()+"/"+(d.getMonth()+1)+"/"+String((d.getFullYear()+543)%100).padStart(2,"0")}
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.hidden=true},2600)}
+function codeKey(c){return [c[0],parseInt(c.slice(1),10)||0]}
+function sorted(a){return a.slice().sort((x,y)=>{const[a1,a2]=codeKey(x.code||x.id),[b1,b2]=codeKey(y.code||y.id);return a1<b1?-1:a1>b1?1:a2-b2})}
+function pill(s){return `<span class="pill st-${STK[s]||"note"}">${esc(s)}</span>`}
+function secOf(t){return t.sec||(t.code||t.id)[0]}
+function filtered(){const q=state.q.trim().toLowerCase();return sorted(tasks).filter(t=>(state.sec==="all"||secOf(t)===state.sec)&&(state.st==="all"||t.status===state.st)&&(!q||[t.code,t.title,t.detail,t.next,t.related].join(" ").toLowerCase().includes(q)))}
+function who(id){return id?(names[id]||""):""}
+
+function render(){
+  const a=document.activeElement;
+  if(a&&a.closest&&a.closest("#app")&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.dataset.keep!=="0"){pending=true;return}
+  pending=false;
+  const counts={};for(const t of tasks){counts[secOf(t)]=counts[secOf(t)]||{n:0};counts[secOf(t)].n++;counts[secOf(t)][t.status]=(counts[secOf(t)][t.status]||0)+1}
+  const stc={};for(const t of tasks)stc[t.status]=(stc[t.status]||0)+1;
+  let h=`<div class="top"><div><h1>งานระบบ Music Arms</h1><p class="sub">บันทึกงานคลัง ออเดอร์ และระบบ · วันนี้ ${todayTH()}</p></div><div class="acts"><button class="btn" data-act="png">บันทึกเป็นรูป</button><button class="btn" data-act="export">ส่งออก CSV</button><button class="btn pri" data-act="add"${canWrite?"":" disabled"}>+ เพิ่มงาน</button></div></div>`;
+  if(dbMissing)h+=`<div class="empty"><b>บันทึกไม่ได้ในมุมมองนี้</b>เปิดหน้านี้ใน claude.ai และเข้าสู่ระบบ เพื่อดูและบันทึกงานร่วมกัน</div>`;
+  h+=`<div class="tiles">`+Object.keys(SEC).map(k=>{const c=counts[k]||{n:0};return `<button class="tile" data-act="sec" data-v="${k}" aria-pressed="${state.sec===k}"><span class="nm"><i class="dot s${k.toLowerCase()}"></i>${esc(SEC[k])}</span><span class="n">${c.n}</span><span class="mini">${ST.filter(([s])=>c[s]).map(([s,key])=>`<span class="pill st-${key}">${esc(s)} ${c[s]}</span>`).join("")}</span><span class="ds">${esc(SECSUB[k])}</span></button>`}).join("")+`</div>`;
+  h+=`<div class="tabs" role="tablist"><button class="tab" role="tab" data-act="tab" data-v="tasks" aria-selected="${state.tab==="tasks"}">รายการงาน</button><button class="tab" role="tab" data-act="tab" data-v="logs" aria-selected="${state.tab==="logs"}">บันทึกรายวัน</button></div>`;
+  if(state.adding)h+=addPanel();
+  h+= state.tab==="tasks"?tasksView(stc):logsView();
+  $("#app").innerHTML=h;
+}
+function addPanel(){
+  return `<div class="panel"><label>ส่วนงาน<select id="n-sec">${Object.keys(SEC).map(k=>`<option value="${k}"${state.sec===k?" selected":""}>${esc(SEC[k])}</option>`).join("")}</select></label>
+  <label>สถานะ<select id="n-st">${ST.map(([s])=>`<option${s==="รอสรุป"?" selected":""}>${esc(s)}</option>`).join("")}</select></label>
+  <label class="full">หัวข้องาน<input id="n-title" placeholder="เช่น ขอปรับหน้าเก็บขึ้นชั้น"></label>
+  <label class="full">รายละเอียด<textarea id="n-detail"></textarea></label>
+  <label>เกี่ยวข้อง<input id="n-rel" placeholder="เช่น ทีมขนส่ง · เสมียนคลัง"></label>
+  <label>ขั้นต่อไป<input id="n-next"></label>
+  <div class="acts full"><button class="btn pri" data-act="create">บันทึกงาน</button><button class="btn" data-act="cancel-add">ยกเลิก</button></div></div>`;
+}
+function tasksView(stc){
+  let h=`<div class="bar"><button class="chip" data-act="st" data-v="all" aria-pressed="${state.st==="all"}">ทุกสถานะ ${tasks.length}</button>`+ST.filter(([s])=>stc[s]).map(([s])=>`<button class="chip" data-act="st" data-v="${esc(s)}" aria-pressed="${state.st===s}">${esc(s)} ${stc[s]}</button>`).join("")+`<input class="search" id="q" data-keep="0" placeholder="ค้นหา รหัส หัวข้อ รายละเอียด" value="${esc(state.q)}"></div>`;
+  if(state.sec!=="all")h+=`<div class="note">กำลังดูเฉพาะ: ${esc(SEC[state.sec])} · <button class="chip" data-act="sec" data-v="all">ดูทุกส่วน</button></div>`;
+  if(!loaded&&!dbMissing)return h+`<div class="empty">กำลังโหลดงาน…</div>`;
+  const list=filtered();
+  if(!tasks.length)return h+`<div class="empty"><b>ยังไม่มีงานในระบบ</b>กด “+ เพิ่มงาน” เพื่อบันทึกเรื่องแรก</div>`;
+  if(!list.length)return h+`<div class="empty"><b>ไม่พบงานตามตัวกรอง</b>ลองเลือกสถานะหรือส่วนงานอื่น</div>`;
+  return h+`<div class="list">`+list.map(taskCard).join("")+`</div>`;
+}
+function taskCard(t){
+  const id=t.id,o=state.open.has(id),s=secOf(t);
+  let h=`<article class="task${o?" open":""}" data-id="${esc(id)}"><button class="row" data-act="toggle" aria-expanded="${o}"><span class="code s${s.toLowerCase()}">${esc(t.code||id)}</span><span class="ttl">${esc(t.title)}</span>${pill(t.status)}<i class="chev"></i></button>`;
+  if(o){
+    const tl=logs.filter(l=>l.taskId===id);
+    h+=`<div class="more">
+    <label>สถานะ<select class="f-st">${ST.map(([x])=>`<option${x===t.status?" selected":""}>${esc(x)}</option>`).join("")}</select></label>
+    <label>เกี่ยวข้อง<input class="f-rel" value="${esc(t.related)}"></label>
+    <label class="full">หัวข้อ<input class="f-title" value="${esc(t.title)}"></label>
+    <label class="full">รายละเอียด<textarea class="f-detail">${esc(t.detail)}</textarea></label>
+    <label class="full">ขั้นต่อไป<input class="f-next" value="${esc(t.next)}"></label>
+    <div class="note full">เปิดเรื่อง ${esc(t.opened||"-")} · อัปเดตล่าสุด ${esc(t.updated||"-")} · ที่มา ${esc(t.source||"-")}</div>
+    <div class="acts full"><button class="btn pri" data-act="save"${canWrite?"":" disabled"}>บันทึกการแก้ไข</button><button class="btn danger" data-act="del"${canWrite?"":" disabled"}>ลบงาน</button></div>
+    <div class="full"><h2>บันทึกความคืบหน้า</h2>${tl.length?`<ul class="log" style="margin-top:8px">${tl.map(l=>`<li><time>${esc(l.date)}</time><span>${esc(l.text)}${who(l.by)?` <span class="by">· ${esc(who(l.by))}</span>`:""}</span></li>`).join("")}</ul>`:`<p class="note">ยังไม่มีบันทึก</p>`}</div>
+    <label class="full">เพิ่มบันทึกวันนี้ (${todayTH()})<textarea class="f-log" placeholder="เช่น ส่งข้อความให้ผู้พัฒนาแล้ว รอตอบ"></textarea></label>
+    <div class="acts full"><button class="btn" data-act="log"${canWrite?"":" disabled"}>เพิ่มบันทึก</button></div></div>`;
+  }
+  return h+`</article>`;
+}
+function logsView(){
+  let h=`<div class="panel"><label>งาน<select id="l-task">${sorted(tasks).map(t=>`<option value="${esc(t.id)}">${esc(t.code||t.id)} · ${esc(t.title)}</option>`).join("")}</select></label><label>สถานะใหม่ (ถ้าเปลี่ยน)<select id="l-st"><option value="">ไม่เปลี่ยน</option>${ST.map(([s])=>`<option>${esc(s)}</option>`).join("")}</select></label><label class="full">บันทึกวันนี้ (${todayTH()})<textarea id="l-text"></textarea></label><div class="acts full"><button class="btn pri" data-act="addlog"${canWrite?"":" disabled"}>บันทึก</button></div></div>`;
+  if(!loaded&&!dbMissing)return h+`<div class="empty">กำลังโหลด…</div>`;
+  if(!logs.length)return h+`<div class="empty"><b>ยังไม่มีบันทึก</b>เลือกงานด้านบนแล้วจดความคืบหน้าของวันนี้</div>`;
+  const byId=Object.fromEntries(tasks.map(t=>[t.id,t])),groups=[];
+  for(const l of logs){let g=groups[groups.length-1];if(!g||g.d!==l.date){g={d:l.date,items:[]};groups.push(g)}g.items.push(l)}
+  return h+groups.map(g=>`<section class="day"><h2>${esc(g.d)}</h2>`+g.items.map(l=>{const t=byId[l.taskId]||{};const s=(t.sec||(l.taskId||"A")[0]);return `<div class="entry"><span class="code s${s.toLowerCase()}">${esc(t.code||l.taskId)}</span><span class="ttl">${esc(t.title||"(งานถูกลบแล้ว)")}</span><span class="t">${esc(l.text)}${l.status?" · "+esc(l.status):""}${who(l.by)?" · "+esc(who(l.by)):""}</span></div>`}).join("")+`</section>`).join("");
+}
+async function resolveNames(){
+  if(!user?.profiles)return;
+  const ids=[...new Set(logs.map(l=>l.by).filter(i=>i&&!(i in names)))];if(!ids.length)return;
+  ids.forEach(i=>names[i]="");
+  try{const ps=await user.profiles(ids);ids.forEach(i=>{names[i]=(ps&&ps[i]&&ps[i].name)||""});render()}catch(e){}
+}
+async function wr(fn,msg){try{await fn();if(msg)toast(msg)}catch(e){toast("บันทึกไม่สำเร็จ: "+(e&&e.code==="invalid_argument"?"ไม่มีสิทธิ์แก้ไข":"ลองใหม่อีกครั้ง"))}}
+const logAdd=(taskId,text,status)=>db.collection("logs").add({taskId,date:todayTH(),ts:Date.now(),text,status:status||"",by:uid||""});
+
+let qT=0;
+function applySearch(el){const p=el.selectionStart;state.q=el.value;el.dataset.keep="0";pending=false;render();const n=$("#q");if(n){n.focus();try{n.setSelectionRange(p,p)}catch(e){}}}
+document.addEventListener("input",e=>{if(e.target.id!=="q")return;state.q=e.target.value;if(e.isComposing)return;clearTimeout(qT);const el=e.target;qT=setTimeout(()=>{if(document.activeElement===el)applySearch(el)},150)});
+document.addEventListener("compositionend",e=>{if(e.target.id==="q")applySearch(e.target)});
+document.addEventListener("focusout",()=>{setTimeout(()=>{if(pending)render()},0)});
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const act=b.dataset.act,v=b.dataset.v,card=b.closest(".task"),id=card&&card.dataset.id;
+  if(act==="sec"){state.sec=state.sec===v&&v!=="all"?"all":v;state.tab="tasks";persist();return render()}
+  if(act==="st"){state.st=v;persist();return render()}
+  if(act==="tab"){state.tab=v;persist();return render()}
+  if(act==="toggle"){state.open.has(id)?state.open.delete(id):state.open.add(id);return render()}
+  if(act==="add"){state.adding=true;return render()}
+  if(act==="cancel-add"){state.adding=false;return render()}
+  if(act==="export")return exportCsv();
+  if(act==="png")return exportPng();
+  if(!db)return toast("บันทึกไม่ได้ในมุมมองนี้");
+  if(act==="create"){
+    const title=$("#n-title").value.trim();if(!title)return toast("ใส่หัวข้องานก่อน");
+    const sec=$("#n-sec").value,mx=Math.max(0,...tasks.filter(t=>secOf(t)===sec).map(t=>parseInt((t.code||t.id).slice(1),10)||0)),code=sec+(mx+1),d=todayTH();
+    await wr(async()=>{await db.doc("tasks/"+code).set({code,sec,title,detail:$("#n-detail").value.trim(),status:$("#n-st").value,related:$("#n-rel").value.trim(),source:"บันทึกในแอป",next:$("#n-next").value.trim(),opened:d,updated:d,createdAt:Date.now()});await logAdd(code,"เปิดเรื่อง: "+title,$("#n-st").value);state.adding=false;state.open.add(code)},"เพิ่มงาน "+code+" แล้ว");
+    return;
+  }
+  if(act==="save"){
+    const t=tasks.find(x=>x.id===id),st=card.querySelector(".f-st").value,patch={title:card.querySelector(".f-title").value.trim()||t.title,detail:card.querySelector(".f-detail").value.trim(),related:card.querySelector(".f-rel").value.trim(),next:card.querySelector(".f-next").value.trim(),status:st,updated:todayTH()};
+    await wr(async()=>{await db.doc("tasks/"+id).update(patch);if(st!==t.status)await logAdd(id,"เปลี่ยนสถานะเป็น "+st,st)},"บันทึกแล้ว");
+    return;
+  }
+  if(act==="log"){
+    const ta=card.querySelector(".f-log"),text=ta.value.trim();if(!text)return toast("พิมพ์บันทึกก่อน");
+    await wr(async()=>{await logAdd(id,text);await db.doc("tasks/"+id).update({updated:todayTH()});ta.value=""},"เพิ่มบันทึกแล้ว");
+    return;
+  }
+  if(act==="del"){
+    if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="กดอีกครั้งเพื่อยืนยันลบ";return}
+    await wr(async()=>{await db.doc("tasks/"+id).delete();state.open.delete(id)},"ลบงานแล้ว");return;
+  }
+  if(act==="addlog"){
+    const tid=$("#l-task").value,text=$("#l-text").value.trim(),st=$("#l-st").value;if(!tid||!text)return toast("เลือกงานและพิมพ์บันทึกก่อน");
+    await wr(async()=>{await logAdd(tid,text,st);const patch={updated:todayTH()};if(st)patch.status=st;await db.doc("tasks/"+tid).update(patch);$("#l-text").value=""},"บันทึกแล้ว");
+  }
+});
+async function exportCsv(){
+  if(!downloads)return toast("ส่งออกไม่ได้ในมุมมองนี้");
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const rows=[["รหัส","ส่วน","หัวข้อ","รายละเอียด","สถานะ","เกี่ยวข้อง","เปิดเมื่อ","อัปเดตล่าสุด","ขั้นต่อไป","ที่มา"]].concat(sorted(tasks).map(t=>[t.code||t.id,SEC[secOf(t)]||"",t.title,t.detail,t.status,t.related,t.opened,t.updated,t.next,t.source]));
+  try{await downloads.save({filename:"งานระบบ-"+todayTH().replace(/\//g,"-")+".csv",data:"﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n")});toast("ส่งออกแล้ว")}catch(e){if(!e||e.code!=="declined")toast("ส่งออกไม่สำเร็จ")}
+}
+
+const IMG_ST={"เสร็จแล้ว":["#E2F3DE","#27500A"],"ส่งข้อความผู้พัฒนาแล้ว":["#FAEEDA","#633806"],"ยังไม่เรียบร้อย":["#FCE4E4","#8A1F1F"],"ต้องตรวจสอบ":["#FFE4CC","#7A3300"],"รอคุยต่อ":["#E8E6F6","#3C3489"],"รอสรุป":["#E8E6F6","#3C3489"],"บันทึกไว้":["#E6E9EC","#3F4854"]};
+const IMG_SEC={A:["#EEF3EC","#3F7A38"],B:["#EAF1F8","#1F5F8B"],C:["#FAF0E2","#A5661A"],D:["#EFEBF7","#6A4FA8"],E:["#E7F4F2","#14736E"]};
+async function exportPng(){
+  if(!downloads)return toast("บันทึกรูปไม่ได้ในมุมมองนี้");
+  if(!tasks.length)return toast("ยังไม่มีงานให้บันทึก");
+  try{await Promise.all([document.fonts.load('600 28px "IBM Plex Sans Thai"'),document.fonts.load('400 23px "IBM Plex Sans Thai"')])}catch(e){}
+  const F='"IBM Plex Sans Thai","Noto Sans Thai",sans-serif',W=1800,M=30,RH=50,HH=58,GAP=26;
+  const list=sorted(tasks),groups=Object.keys(SEC).map(k=>({k,items:list.filter(t=>secOf(t)===k)}));
+  const H=210+groups.reduce((n,g)=>n+HH+Math.max(1,g.items.length)*RH+GAP,0)+60;
+  const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const rr=(a,b,w,h,r)=>{x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()};
+  const fit=(t,w)=>{t=String(t||"");if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+"…").width>w)t=t.slice(0,-1);return t+"…"};
+  x.fillStyle="#F6F6F2";x.fillRect(0,0,W,H);x.textBaseline="alphabetic";
+  x.fillStyle="#1B2430";x.font="600 42px "+F;x.fillText("สรุปงานระบบคลัง/ออเดอร์ ประจำวัน "+todayTH()+" — แยกตามส่วนงาน",M,64);
+  let px=M;const cnt={};list.forEach(t=>{cnt[t.status]=(cnt[t.status]||0)+1});
+  x.font="600 19px "+F;
+  ST.forEach(([n])=>{if(!cnt[n])return;const lab=n+" "+cnt[n],w=x.measureText(lab).width+28,col=IMG_ST[n]||IMG_ST["บันทึกไว้"];x.fillStyle=col[0];rr(px,92,w,34,17);x.fill();x.fillStyle=col[1];x.fillText(lab,px+14,116);px+=w+12});
+  x.fillStyle="#6B6B66";x.font="400 22px "+F;x.fillText("ทั้งหมด "+list.length+" เรื่อง · \"ส่งข้อความผู้พัฒนาแล้ว\" = ส่งแล้ว รอผู้พัฒนาแก้ (ยังไม่ถือว่าเสร็จ)",M,166);
+  let y=205;
+  groups.forEach(g=>{
+    const col=IMG_SEC[g.k]||IMG_SEC.A,h=HH+Math.max(1,g.items.length)*RH;
+    x.fillStyle="#FFFFFF";rr(M,y,W-2*M,h,14);x.fill();x.strokeStyle="#DADAD4";x.lineWidth=1;x.stroke();
+    x.save();rr(M,y,W-2*M,h,14);x.clip();x.fillStyle=col[0];x.fillRect(M,y,W-2*M,HH);x.restore();
+    x.fillStyle=col[1];x.font="600 28px "+F;x.fillText(SEC[g.k],M+24,y+39);
+    if(!g.items.length){x.strokeStyle="#ECECE6";x.beginPath();x.moveTo(M+24,y+HH);x.lineTo(W-M-24,y+HH);x.stroke();x.fillStyle="#8A8A84";x.font="400 23px "+F;x.fillText("ยังไม่มีงานในส่วนนี้",M+24,y+HH+33)}
+    g.items.forEach((t,i)=>{
+      const ry=y+HH+i*RH;
+      x.strokeStyle="#ECECE6";x.beginPath();x.moveTo(M+24,ry);x.lineTo(W-M-24,ry);x.stroke();
+      x.fillStyle="#8A8A84";x.font="600 18px "+F;x.fillText(t.code||t.id,M+24,ry+32);
+      const st=t.status||"",sc=IMG_ST[st]||IMG_ST["บันทึกไว้"];x.font="600 19px "+F;const pw=x.measureText(st).width+30;
+      x.fillStyle=sc[0];rr(W-M-24-pw,ry+8,pw,34,17);x.fill();x.fillStyle=sc[1];x.fillText(st,W-M-24-pw+15,ry+32);
+      x.fillStyle="#1B2430";x.font="400 23px "+F;x.fillText(fit(t.title,W-2*M-24-80-pw-60),M+84,ry+33);
+    });
+    y+=h+GAP;
+  });
+  x.fillStyle="#8A8A84";x.font="400 20px "+F;x.fillText("Music Arms · งานระบบ · ข้อมูล ณ "+todayTH(),M,H-24);
+  const blob=await new Promise(r=>c.toBlob(r,"image/png"));
+  if(!blob)return toast("สร้างรูปไม่สำเร็จ");
+  try{await downloads.save({filename:"สรุปงานระบบ-"+todayTH().replace(/\//g,"-")+".png",data:blob});toast("บันทึกรูปแล้ว")}catch(e){if(!e||e.code!=="declined")toast("บันทึกรูปไม่สำเร็จ")}
+}
+async function init(){
+  render();
+  [db,user,downloads]=await Promise.all([use("db"),use("user"),use("downloads")]);
+  if(!db){dbMissing=true;return render()}
+  try{uid=await user?.id?.()}catch(e){}
+  try{canWrite=(await user?.can?.("data.write"))!==false}catch(e){}
+  db.collection("tasks").onSnapshot(s=>{tasks=s.docs.map(d=>({id:d.id,...d.data()}));loaded=true;render()},e=>{loaded=true;if(e&&e.code!=="revoked")toast("โหลดงานไม่สำเร็จ");render()});
+  db.collection("logs").orderBy("ts","desc").limit(500).onSnapshot(s=>{logs=s.docs.map(d=>({id:d.id,...d.data()}));render();resolveNames()},()=>{});
+}
+init();
+</script>
+
+</body></html>
